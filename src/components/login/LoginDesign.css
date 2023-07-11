@@ -1,0 +1,8 @@
+.signin-form {
+    display: flex;
+    flex-direction: column;
+    background-color: #FFF;
+    color: #333;
+    width: 500px;
+    padding: 24px;
+}
