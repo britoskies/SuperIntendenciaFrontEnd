@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GenericService } from "../services/genericService";
 import { iProduct } from "./../interfaces/models/iProduct";
 
@@ -6,18 +6,14 @@ export const useProducts = () => {
   const [products, setProducts] = useState<iProduct[]>([]);
   const productService = new GenericService<iProduct>();
 
-  useEffect(() => {
-    fetchData();
-
-    async function fetchData() {
-      try {
-        const fetchedProducts = await productService.getAll("/products");
-        setProducts(fetchedProducts);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
+  const getAllProducts = async () => {
+    try {
+      const fetchedProducts = await productService.getAll("/products");
+      setProducts(fetchedProducts);
+    } catch (error) {
+      console.error("Error fetching products:", error);
     }
-  }, []);
+  }
 
   const createProduct = async (product: iProduct) => {
     try {
@@ -63,5 +59,5 @@ export const useProducts = () => {
     }
   };
 
-  return { products, getProduct, createProduct, updateProduct, deleteProduct };
+  return { products, getProduct, getAllProducts, createProduct, updateProduct, deleteProduct };
 };

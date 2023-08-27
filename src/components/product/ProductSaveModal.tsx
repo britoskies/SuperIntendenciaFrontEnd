@@ -35,7 +35,7 @@ function ProductSaveModal({ onClose, open, mode, productId }: Props) {
 
   const { products, getProduct, createProduct, updateProduct } = useProducts();
   const { categories } = useCategories();
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   const handleClose = () => {
     if (mode === "add") {
@@ -78,26 +78,28 @@ function ProductSaveModal({ onClose, open, mode, productId }: Props) {
     }
 
     // To reload and reflect changes
-    window.location.reload();
-    navigate("/products");
+    // window.location.reload();
+    // navigate("/products");
   };
 
-  const updateStates = async () => {
-    if (productId) {
-      await getProduct(`${productId}`);
-      products.map((product) => {
-        setProductName(product.name);
-        setProductDescription(product.description);
-        setProductImage(product.imageUrl);
-        setProductPrice(product.price.toString());
-        setProductCategory(`${product.categoryId}` || "");
-      });
-    }
-  };
 
   useEffect(() => {
+    const updateStates = async () => {
+      if (productId) {
+        await getProduct(`${productId}`);
+        products.map((product) => {
+          setProductName(product.name);
+          setProductDescription(product.description);
+          setProductImage(product.imageUrl);
+          setProductPrice(product.price.toString());
+          setProductCategory(`${product.categoryId}` || "");
+        });
+        console.log(productName);
+      }
+    };
+  
     updateStates();
-  }, [products]);
+  },[]);
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth>

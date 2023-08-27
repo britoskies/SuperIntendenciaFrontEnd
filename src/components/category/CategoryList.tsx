@@ -1,14 +1,20 @@
 import NoContent from "../error/NoContent";
 import CategoryCard from "./CategoryCard";
-import { useCategories } from "../../hooks/useCategories";
+//import { useCategories } from "../../hooks/useCategories";
+import { useGetCategoriesQuery } from "../../api/categorySlice";
+import { iCategory } from "../../interfaces/models/iCategory";
 
 const CategoryList: React.FC = () => {
-  const { categories } = useCategories();
+  const { data, isError } = useGetCategoriesQuery();
   return (
     <>
-      {categories ? categories.map((category, index) => (
-        <CategoryCard key={index} category={category} />
-      )) : <NoContent entity="category"/>}
+      {!isError ? (
+        data?.map((category: iCategory) => (
+          <CategoryCard key={category.id} category={category} />
+        ))
+      ) : (
+        <NoContent entity="category" />
+      )}
     </>
   );
 };

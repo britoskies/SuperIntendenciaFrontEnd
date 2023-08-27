@@ -1,7 +1,10 @@
 // Hooks
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useCategories } from "../../hooks/useCategories";
+import {
+  useCreateCategoryMutation,
+  useGetCategoriesQuery,
+  useUpdateCategoryMutation,
+} from "../../api/categorySlice";
 
 // Mui
 import {
@@ -26,11 +29,10 @@ function CategorySaveModal({ onClose, open, mode, categoryId }: Props) {
   const [categoryName, setCategoryName] = useState<string>("");
   const [categoryDescription, setCategoryDescription] = useState<string>("");
 
-  // Hooks
-  const { categories, getCategory, createCategory, updateCategory } =
-    useCategories();
-
-  const navigate = useNavigate();
+  // Querys & Mutations
+  const { data } = useGetCategoriesQuery();
+  const [createCategory] = useCreateCategoryMutation();
+  const [updateCategory] = useUpdateCategoryMutation();
 
   const handleClose = () => {
     if (mode === "add") {
@@ -40,42 +42,39 @@ function CategorySaveModal({ onClose, open, mode, categoryId }: Props) {
     return onClose();
   };
 
-  const handleAccept = () => {
+  const handleAccept = async (event: any) => {
     if (categoryName && categoryDescription) {
-      save();
+      event.preventDefault();
+      const newCategory = {
+        name: categoryName,
+        description: categoryDescription,
+      };
+
+      switch (mode) {
+        case "add":
+          await createCategory(newCategory);
+          break;
+        case "update":
+          await updateCategory({ ...newCategory, id: categoryId });
+          break;
+        default:
+          break;
+      }
       return handleClose();
     }
   };
 
-  const save = async () => {
-    const newCategory = {
-      name: categoryName,
-      description: categoryDescription,
-    };
-
-    if (mode === "add") await createCategory(newCategory);
-    else {
-      if (categoryId) await updateCategory(`${categoryId}`, newCategory);
-    }
-
-    // To reload and reflect changes
-    window.location.reload();
-    navigate("/categories");
-  };
-
-  const updateStates = async () => {
-    if (categoryId) {
-      await getCategory(`${categoryId}`);
-      categories.map((category) => {
-        setCategoryName(category.name);
-        setCategoryDescription(category.description);
-      });
-    }
-  };
-
   useEffect(() => {
-    updateStates();
-  }, [categories]);
+    if (categoryId) {
+      const foundCategory = data?.find(
+        (category) => category.id === categoryId
+      );
+      if (foundCategory) {
+        setCategoryName(foundCategory.name);
+        setCategoryDescription(foundCategory.description);
+      }
+    }
+  }, [data, categoryId]);
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth>
@@ -89,23 +88,25 @@ function CategorySaveModal({ onClose, open, mode, categoryId }: Props) {
         >
           <TextField
             id="name"
+            name="name"
             label="Name"
             type="text"
-            defaultValue={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
             InputLabelProps={{ shrink: true }}
             fullWidth
+            value={categoryName}
+            onChange={(e) => setCategoryName(e.target.value)}
           />
         </FormControl>
         <FormControl sx={{ mb: 3 }} fullWidth>
           <TextField
             id="description"
+            name="description"
             label="Description"
             type="text"
+            variant="outlined"
             multiline
             fullWidth
-            variant="outlined"
-            defaultValue={categoryDescription}
+            value={categoryDescription}
             onChange={(e) => setCategoryDescription(e.target.value)}
           />
         </FormControl>

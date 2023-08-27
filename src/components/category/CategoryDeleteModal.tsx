@@ -1,6 +1,8 @@
 // Hooks
-import { useNavigate } from "react-router-dom";
-import { useCategories } from "../../hooks/useCategories";
+import {
+  useDeleteCategoryMutation,
+  useGetCategoriesQuery,
+} from "../../api/categorySlice";
 
 // MUI
 import {
@@ -18,37 +20,30 @@ type Props = {
 };
 
 function CategoryDeleteModal({ onClose, open, categoryId }: Props) {
-  const { categories, getCategory, deleteCategory } = useCategories();
-  const navigate = useNavigate();
+  const { data } = useGetCategoriesQuery();
+  const [deleteCategory] = useDeleteCategoryMutation();
 
   const handleAccept = async () => {
-    await getCategory(`${categoryId}`);
-    await deleteCategory(`${categoryId}`);
-
-    // To reload and reflect changes
-    window.location.reload();
-    navigate("/categories");
+    await deleteCategory(categoryId);
   };
 
   // Filter using the categoryId passed by props
   const getCategoryName = () =>
-    categories.filter((c) => c.id == categoryId).map((c) => c.name);
+    data?.filter((c) => c.id == categoryId).map((c) => c.name);
 
   return (
-    <>
-      <Dialog open={open} onClose={onClose} fullWidth>
-        <DialogTitle>Delete Category</DialogTitle>
-        <DialogContent>
-          Are you sure to delete category <b>{getCategoryName()}</b> ?!
-        </DialogContent>
-        <DialogActions>
-          <Button color="error" onClick={handleAccept}>
-            Delete
-          </Button>
-          <Button onClick={onClose}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
-    </>
+    <Dialog open={open} onClose={onClose} fullWidth>
+      <DialogTitle>Delete Category</DialogTitle>
+      <DialogContent>
+        Are you sure to delete category <b>{getCategoryName()}</b> ?!
+      </DialogContent>
+      <DialogActions>
+        <Button color="error" onClick={handleAccept}>
+          Delete
+        </Button>
+        <Button onClick={onClose}>Cancel</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
