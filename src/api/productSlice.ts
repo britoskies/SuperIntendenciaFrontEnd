@@ -1,8 +1,9 @@
 import { apiSlice } from "./apiSlice";
+import { iProduct } from './../interfaces/models/iProduct';
 
 const productSlice = apiSlice.injectEndpoints({
   endpoints: (build) => ({
-    getProducts: build.query({
+    getProducts: build.query<iProduct[], void>({
       query: () => "/products",
       providesTags: ["Products"],
     }),
@@ -16,8 +17,9 @@ const productSlice = apiSlice.injectEndpoints({
     }),
     updateProduct: build.mutation({
       query: (updatedProduct) => ({
-        url: `/products/${updatedProduct.id}`,
-        method: "PATCH",
+        url: `/products`,
+        params: {id: updatedProduct.id},
+        method: "PUT",
         body: updatedProduct,
       }),
       invalidatesTags: ["Products"],

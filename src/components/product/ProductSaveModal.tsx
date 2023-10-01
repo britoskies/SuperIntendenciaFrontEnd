@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
-
 // Hooks
-import { useCategories } from "./../../hooks/useCategories";
-import { useProducts } from "./../../hooks/useProducts";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useCreateProductMutation, useGetProductsQuery, useUpdateProductMutation } from "../../api/productSlice";
+import { useGetCategoriesQuery } from "../../api/categorySlice";
 
 // Mui
 import {
@@ -27,79 +25,66 @@ type Props = {
 };
 
 function ProductSaveModal({ onClose, open, mode, productId }: Props) {
-  const [productName, setProductName] = useState<string>("");
-  const [productDescription, setProductDescription] = useState<string>("");
-  const [productImage, setProductImage] = useState<string>("");
-  const [productPrice, setProductPrice] = useState<string>("");
-  const [productCategory, setProductCategory] = useState<string>("");
+  // State
+  const [productState, setProductState] = useState({
+    name: "",
+    description: "",
+    imageUrl: "",
+    price: "",
+    categoryId: ""
+  });
 
-  const { products, getProduct, createProduct, updateProduct } = useProducts();
-  const { categories } = useCategories();
-  //const navigate = useNavigate();
+  // Mutations
+  const {data: products} = useGetProductsQuery();
+  const {data: categories} = useGetCategoriesQuery();
+  const [createProduct] = useCreateProductMutation();
+  const [updateProduct] = useUpdateProductMutation();
 
+  // Handles
+  const handleChange = (event: any) => {
+    setProductState({...productState, [event.target.name]: event.target.value});
+  }
+  
   const handleClose = () => {
-    if (mode === "add") {
-      setProductName("");
-      setProductDescription("");
-      setProductImage("");
-      setProductPrice("");
-      setProductCategory("");
-    }
+    if (mode === "add") setProductState(prevState => ({...prevState}));
     return onClose();
   };
 
-  const handleAccept = () => {
-    if (
-      productName &&
-      productDescription &&
-      productImage &&
-      productPrice &&
-      productCategory
-    ) {
-      save();
+  const handleAccept = async (event: any) => {
+    const { name, description, imageUrl, price, categoryId } = productState;
+  
+    if (name && description && imageUrl && price && categoryId) {
+      event.preventDefault();
+      switch (mode) {
+        case "add":
+          await createProduct(productState);
+          break;
+        case "update":
+          await updateProduct({...productState, id: productId});
+          break;
+        default:
+          break;
+      }
       return handleClose();
     }
   };
 
-  const save = async () => {
-    const newProduct = {
-      name: productName,
-      description: productDescription,
-      imageUrl: productImage,
-      price: Number(productPrice),
-      categoryId: Number(productCategory),
-    };
-
-    if (mode === "add") await createProduct(newProduct);
-    else {
-      if (productId) {
-        await updateProduct(`${productId}`, newProduct);
+  useEffect(() => {
+    if (productId) {
+      const foundProduct = products?.find(
+        (product) => product.id === productId
+      );
+      if (foundProduct) {
+        setProductState({
+          name: foundProduct.name,
+          description: foundProduct.description,
+          imageUrl: foundProduct.imageUrl,
+          price: foundProduct.price.toString(),
+          categoryId: foundProduct.categoryId ? foundProduct.categoryId.toString() : ""
+        });
       }
     }
-
-    // To reload and reflect changes
-    // window.location.reload();
-    // navigate("/products");
-  };
-
-
-  useEffect(() => {
-    const updateStates = async () => {
-      if (productId) {
-        await getProduct(`${productId}`);
-        products.map((product) => {
-          setProductName(product.name);
-          setProductDescription(product.description);
-          setProductImage(product.imageUrl);
-          setProductPrice(product.price.toString());
-          setProductCategory(`${product.categoryId}` || "");
-        });
-        console.log(productName);
-      }
-    };
-  
-    updateStates();
-  },[]);
+  },[products, productId]);
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth>
@@ -112,20 +97,20 @@ function ProductSaveModal({ onClose, open, mode, productId }: Props) {
           fullWidth
         >
           <TextField
-            id="name"
+            name="name"
             label="Name"
             type="text"
-            defaultValue={productName}
-            onChange={(e) => setProductName(e.target.value)}
+            defaultValue={productState.name}
+            onChange={handleChange}
             InputLabelProps={{ shrink: true }}
             fullWidth
           />
           <TextField
-            id="image-url"
+            name="imageUrl"
             label="Image URL"
             type="text"
-            defaultValue={productImage}
-            onChange={(e) => setProductImage(e.target.value)}
+            defaultValue={productState.imageUrl}
+            onChange={handleChange}
             InputLabelProps={{
               shrink: true,
             }}
@@ -136,10 +121,11 @@ function ProductSaveModal({ onClose, open, mode, productId }: Props) {
           <InputLabel id="categoryId">Category</InputLabel>
           <Select
             labelId="categories-label"
+            name="categoryId"
             id="categoryId"
-            defaultValue={productCategory}
+            defaultValue={productState.categoryId}
             label="Categories"
-            onChange={(e) => setProductCategory(e.target.value)}
+            onChange={handleChange}
           >
             {categories ? (
               categories.map((category) => (
@@ -154,25 +140,25 @@ function ProductSaveModal({ onClose, open, mode, productId }: Props) {
         </FormControl>
         <FormControl sx={{ mb: 3 }} fullWidth>
           <TextField
-            id="price"
+            name="price"
             label="Price"
             type="number"
             fullWidth
             variant="outlined"
-            defaultValue={productPrice}
-            onChange={(e) => setProductPrice(e.target.value)}
+            defaultValue={productState.price}
+            onChange={handleChange}
           />
         </FormControl>
         <FormControl sx={{ mb: 3 }} fullWidth>
           <TextField
-            id="description"
+            name="description"
             label="Description"
             type="text"
             multiline
             fullWidth
             variant="outlined"
-            defaultValue={productDescription}
-            onChange={(e) => setProductDescription(e.target.value)}
+            defaultValue={productState.description}
+            onChange={handleChange}
           />
         </FormControl>
       </DialogContent>
@@ -182,10 +168,10 @@ function ProductSaveModal({ onClose, open, mode, productId }: Props) {
           onClick={handleAccept}
           disabled={
             !(
-              productName &&
-              productDescription &&
-              productPrice &&
-              productCategory
+              productState.name &&
+              productState.description &&
+              productState.price &&
+              productState.categoryId
             )
           }
         >

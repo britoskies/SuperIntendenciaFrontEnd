@@ -23,10 +23,8 @@ function CategoryDeleteModal({ onClose, open, categoryId }: Props) {
   const { data } = useGetCategoriesQuery();
   const [deleteCategory] = useDeleteCategoryMutation();
 
-  const handleAccept = async () => {
-    await deleteCategory(categoryId);
-  };
-
+  const handleAccept = async () => await deleteCategory(categoryId);
+  
   // Filter using the categoryId passed by props
   const getCategoryName = () =>
     data?.filter((c) => c.id == categoryId).map((c) => c.name);

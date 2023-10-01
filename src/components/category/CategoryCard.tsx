@@ -28,18 +28,8 @@ interface Props {
 
 const CategoryCard: React.FC<Props> = ({ category }) => {
   const { open, handleOpen, handleClose } = useModal();
-
-  // To handle delete modal
-  const [openDelete, setOpen] = useState<boolean>(false);
-
-  const handleDeleteOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDeleteClose = () => {
-    setOpen(false);
-  };
-
+  const [ openDelete, setOpen ] = useState<boolean>(false);
+  const handleDeleteOpen = () => setOpen(!openDelete);
   return (
     <>
       <Card sx={{ maxWidth: 270, minWidth: 270 }}>
@@ -81,7 +71,7 @@ const CategoryCard: React.FC<Props> = ({ category }) => {
 
       <CategoryDeleteModal
         open={openDelete}
-        onClose={handleDeleteClose}
+        onClose={handleDeleteOpen}
         categoryId={category.id}
       />
     </>

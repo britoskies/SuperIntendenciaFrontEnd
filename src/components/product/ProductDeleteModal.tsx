@@ -1,12 +1,16 @@
 import {
+  useDeleteProductMutation,
+  useGetProductsQuery,
+} from "../../api/productSlice";
+
+// MUI
+import {
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { useProducts } from "../../hooks/useProducts";
 
 type Props = {
   open: boolean;
@@ -15,21 +19,14 @@ type Props = {
 };
 
 function ProductDeleteModal({ onClose, open, productId }: Props) {
-  const { products, getProduct, deleteProduct } = useProducts();
-  const navigate = useNavigate();
+  const { data } = useGetProductsQuery();
+  const [deleteProduct] = useDeleteProductMutation();
 
-  const handleAccept = async () => {
-    await getProduct(`${productId}`);
-    await deleteProduct(`${productId}`);
-
-    // To reload and reflect changes
-    window.location.reload();
-    navigate("/products");
-  };
+  const handleAccept = async () => await deleteProduct(productId);
 
   // Filter using the productId passed by props
   const getProductName = () =>
-    products.filter((p) => p.id == productId).map((p) => p.name);
+    data?.filter((p) => p.id == productId).map((p) => p.name);
 
   return (
     <>

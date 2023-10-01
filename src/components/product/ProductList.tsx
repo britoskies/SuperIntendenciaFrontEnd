@@ -1,20 +1,20 @@
 import { useEffect } from "react";
+import { useGetProductsQuery } from "../../api/productSlice";
 import NoContent from "../error/NoContent";
-import { useProducts } from "./../../hooks/useProducts";
 import ProductCard from "./ProductCard";
+import { iProduct } from "./../../interfaces/models/iProduct";
 
 const ProductList: React.FC = () => {
-  const { products, getAllProducts } = useProducts();
-
-  useEffect(() => {
-    getAllProducts();
-  },[])
-  
+  const { data, isError } = useGetProductsQuery();
   return (
     <>
-      {products ? products.map((product, index) => (
-        <ProductCard key={index} product={product} />
-      )) : <NoContent entity="product"/>}
+      {!isError ? (
+        data?.map((product: iProduct) => (
+          <ProductCard key={product.id} product={product} />
+        ))
+      ) : (
+        <NoContent entity="product" />
+      )}
     </>
   );
 };

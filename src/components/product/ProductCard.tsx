@@ -31,37 +31,12 @@ interface Props {
 }
 
 const ProductCard: React.FC<Props> = ({ product }) => {
-  const { open, handleOpen, handleClose } = useModal();
-
-  // To handle delete modal
-  const [openDelete, setOpen] = useState<boolean>(false);
-
-  const handleDeleteOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDeleteClose = () => {
-    setOpen(false);
-  };
-
   const noImage = "/assets/no-image.jpg";
-
+  const { open, handleOpen, handleClose } = useModal();
+  const [ openDelete, setOpen ] = useState<boolean>(false);
+  const handleDeleteOpen = () => setOpen(!openDelete);
   return (
     <>
-      {/* Modals */}
-
-      <ProductSaveModal
-        open={open}
-        onClose={handleClose}
-        mode="update"
-        productId={product.id}
-      />
-
-      <ProductDeleteModal
-        open={openDelete}
-        onClose={handleDeleteClose}
-        productId={product.id}
-      />
       <Card sx={{ maxWidth: 270, minWidth: 270 }}>
         <CardHeader
           avatar={
@@ -108,6 +83,21 @@ const ProductCard: React.FC<Props> = ({ product }) => {
           </Box>
         </CardActions>
       </Card>
+
+      {/* Modals */}
+
+      <ProductSaveModal
+        open={open}
+        onClose={handleClose}
+        mode="update"
+        productId={product.id}
+      />
+
+      <ProductDeleteModal
+        open={openDelete}
+        onClose={handleDeleteOpen}
+        productId={product.id}
+      />
     </>
   );
 };
